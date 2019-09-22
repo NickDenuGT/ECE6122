@@ -1,3 +1,13 @@
+/*
+ * Author: Nicholas Denu
+ * Class: ECE6122
+ * Last Modified 09/22/2019
+ * 
+ * Description: This header file is used to define the functions in the 
+ * ECE_Matrix class. The class defines a matrix and allows multiple operations to be
+ * done on that matrix.
+ */
+
 #pragma once
 
 #include <string>

@@ -1,14 +1,12 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   main.cpp
- * Author: nick
- *
- * Created on September 20, 2019, 11:41 AM
+ * Author: Nicholas Denu
+ * Class: ECE6122
+ * Last Modified 09/22/2019
+ * 
+ * Description: This class reads in a file specified by a command line input. 
+ * That file contains a matrix of values that will be read in and analyzed. The
+ * output of the file will be the largest multiplicand of four adjacent
+ * values in the file matrix.
  */
 
 #include <cstdlib>
@@ -20,13 +18,19 @@
 
 using namespace std;
 
-/*
- * 
- */
-
 long multiplyFunc(int, int, int, int);
 bool containsZeros(int, int, int, int);
 
+/*
+ * Purpose: The main function reads in the command line filename input, reads in 
+ * the file that is specified. That matrix is then looked through for the 
+ * greatest multiplicand by four adjacent values. That value is returned.
+ * 
+ * Inputs: argc - The number of command line arguments
+ *         argv - The array of command line arguments. This contains the 
+ *                matrix file
+ * Output: int - Returns 0, as per main functions
+ */
 int main(int argc, char** argv)
 {
     fstream inFile(argv[1]);
@@ -49,6 +53,11 @@ int main(int argc, char** argv)
     long maxValue = 0;
     long tempLong = 0;
     
+    //This nested for loop goes through every index in the array. At every 
+    //point there is a check to the three adjacent values as indicated by the 
+    //comments above the if statements. Based on the index currently being looked
+    //at, you also cannot look in every direction if you are in an edge case. Hence
+    //the multiple if statements.
     for(int i0 = 0, i1 = 1, i2 = 2, i3 = 3 ; i0 < rows; i0++, i1++, i2++, i3++)
     {
         for(int j0 = 0, j1 = 1, j2 = 2, j3 = 3 ; j0 < cols; j0++, j1++, j2++, j3++)
@@ -100,11 +109,23 @@ int main(int argc, char** argv)
     return 0;
 }
 
+/*
+ * Purpose: This function multiplies four ints
+ * 
+ * Inputs: m1, m2, m3, m4 - All multipliers
+ * Output: long - Returns the value of the four inputs multiplied together
+ */
 long multiplyFunc(int m1, int m2, int m3, int m4)
 {
     return (long)m1*m2*m3*m4;
 }
 
+/*
+ * Purpose: Determine whether or not any of the value inputs are zeros
+ * 
+ * Inputs: m1, m2, m3, m4 - Values being checked for zeros
+ * Outputs: bool - true if there is a zero value, false if not.
+ */
 bool containsZeros(int m1, int m2, int m3, int m4)
 {
     if(m1 == 0)
