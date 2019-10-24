@@ -18,10 +18,11 @@ int sockInit(int sockfd, int portno)
     // Convert port number from host to network
     serv_addr.sin_port = htons(portno);
     // Bind the socket to the port number
-    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-    {
+    bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+    //if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+    //{
         //error("ERROR on binding");
-    }
+    //}
     return 0;
 }
 
@@ -53,59 +54,6 @@ void error(const char *msg)
     exit(1);
 }
 
-// Called and ran in a thread to listen for new clients.
-void listener(int sockfd)
-{
-    udpMessage incomingMessageStruct;
-    struct sockaddr_in from;
-    int n;
-    socklen_t fromlen = sizeof(struct sockaddr_in);
-    while (true)
-    {
-        n = recvfrom(sockfd, (char*)&incomingMessageStruct, sizeof(udpMessage), 0, (struct sockaddr *)&from, &fromlen);
-        //printf("n = %d, nVersion = %c, nType = %c\n nMsgLen = %d\n", n, incomingMessageStruct.nVersion, incomingMessageStruct.nType, incomingMessageStruct.nMsgLen);
-        
-        if(incomingMessageStruct.nVersion != 1)
-        {
-            // Ignore Message
-        }
-        else if(incomingMessageStruct.nType == 0)
-        {
-            messageHistoryVector.clear();
-        }
-        else if(incomingMessageStruct.nType == 1)
-        {
-            messageHistoryVector.clear();
-            udpMessageHistory tmp;
-            tmp.from = from;
-            tmp.fromlen = fromlen;
-            tmp.in_message = incomingMessageStruct;
-        
-            messageHistoryVector.push_back(tmp);
-        }
-        else if(incomingMessageStruct.nType == 2)
-        {
-            udpMessageHistory tmp;
-            tmp.from = from;
-            tmp.fromlen = fromlen;
-            tmp.in_message = incomingMessageStruct;
-
-            messageHistoryVector.push_back(tmp);
-        }
-        else if(incomingMessageStruct.nType == 3)
-        {
-            createCompositeMessage();
-            sendCompositeToAll(sockfd);
-            messageHistoryVector.clear();
-        }
-        else
-        {
-            // Do nothing. An incorrect option was taken.
-        }
-        
-    }
-}
-
 bool compareByLSeqNum(const udpMessageHistory &a, const udpMessageHistory &b)
 {
     return a.in_message.lSeqNum < b.in_message.lSeqNum;
@@ -126,13 +74,132 @@ void createCompositeMessage()
     
 }
 
+
+void printMessageStruct(udpMessage outGoing)
+{
+    cout << "UDPMESSAGE\n\n";
+    cout << "chMsg = " << outGoing.chMsg;
+    cout << "\nlSeqNum = " << outGoing.lSeqNum;
+    cout << "\nnMsgLen = " << outGoing.nMsgLen;
+    cout << "\ntype = " << outGoing.nType;
+    cout << "\nversion = " << outGoing.nVersion;
+    cout << "\n\n";
+}
+
 void sendCompositeToAll(int sockfd)
 {
     int n = 0;
     for(int i = 0; i < messageHistoryVector.size(); i++)
     {
-        n = sendto(sockfd, compositeMessage.chMsg, compositeMessage.nMsgLen, 0, (struct sockaddr *)(&messageHistoryVector[i].from), messageHistoryVector[i].fromlen);
-        cout << n << "\n";
+        n = sendto(sockfd, (void *)&compositeMessage, sizeof(udpMessage), 0, (struct sockaddr *)(&messageHistoryVector[i].from), messageHistoryVector[i].fromlen);
+    }
+}
+
+
+// Called and ran in a thread to listen for new clients.
+void listener(int sockfd)
+{
+    udpMessage incomingMessageStruct;
+    struct sockaddr_in from;
+    int n;
+    socklen_t fromlen = sizeof(struct sockaddr_in);
+    
+    while (true)
+    {
+        n = recvfrom(sockfd, (char*)&incomingMessageStruct, sizeof(udpMessage), 0, (struct sockaddr *)&from, &fromlen);
+        //printf("n = %d, nVersion = %c, nType = %c\n nMsgLen = %d\n", n, incomingMessageStruct.nVersion, incomingMessageStruct.nType, incomingMessageStruct.nMsgLen);
+        
+        //printMessageStruct(incomingMessageStruct);
+        
+        if(incomingMessageStruct.nVersion != '1')
+        {
+            // Ignore Message
+        }
+        else if(incomingMessageStruct.nType == '0')
+        {
+            messageHistoryVector.clear();
+        }
+        else if(incomingMessageStruct.nType == '1')
+        {
+            messageHistoryVector.clear();
+            udpMessageHistory tmp;
+            tmp.from = from;
+            tmp.fromlen = fromlen;
+            tmp.in_message = incomingMessageStruct;
+        
+            messageHistoryVector.push_back(tmp);
+        }
+        else if(incomingMessageStruct.nType == '2')
+        {
+            udpMessageHistory tmp;
+            
+            if(compositeMessageLength + incomingMessageStruct.nMsgLen > 1000)
+            {
+                int leftover, nMsgLen;
+                nMsgLen = (1000 - compositeMessageLength);
+                leftover = incomingMessageStruct.nMsgLen - nMsgLen;
+                
+                char tmp_string_front[1000];
+                memset(&tmp_string_front[0], 0, 1000);
+                char tmp_string_back[1000];
+                memset(&tmp_string_back[0], 0, 1000);
+                
+                for(int i = 0; i < nMsgLen ; i++)
+                {
+                    tmp_string_front[i] = incomingMessageStruct.chMsg[i];
+                }
+                for(int i = 0; i < leftover ; i++)
+                {
+                    tmp_string_back[i] = incomingMessageStruct.chMsg[i + nMsgLen];
+                }
+                
+                memset(&incomingMessageStruct.chMsg[0], 0, 1000);
+                strcpy(incomingMessageStruct.chMsg, tmp_string_front);
+               
+                incomingMessageStruct.nMsgLen = nMsgLen;
+            
+                tmp.from = from;
+                tmp.fromlen = fromlen;
+                tmp.in_message = incomingMessageStruct;
+
+                messageHistoryVector.push_back(tmp);
+                
+                createCompositeMessage();
+                sendCompositeToAll(sockfd);
+                messageHistoryVector.clear();
+                
+                
+                compositeMessageLength = leftover;
+                incomingMessageStruct.nMsgLen = leftover;
+                memset(&incomingMessageStruct.chMsg[0], 0, 1000);
+                strcpy(incomingMessageStruct.chMsg, tmp_string_back);
+                incomingMessageStruct.lSeqNum = 0;
+                
+                tmp.in_message = incomingMessageStruct;\
+                
+                messageHistoryVector.push_back(tmp);
+            }
+            else
+            {
+                compositeMessageLength += incomingMessageStruct.nMsgLen;
+                tmp.from = from;
+                tmp.fromlen = fromlen;
+                tmp.in_message = incomingMessageStruct;
+
+                messageHistoryVector.push_back(tmp);
+            }
+        }
+        else if(incomingMessageStruct.nType == '3')
+        {
+            createCompositeMessage();
+            sendCompositeToAll(sockfd);
+            messageHistoryVector.clear();
+        }
+        else
+        {
+            // Do nothing. An incorrect option was taken.
+        }
+        
     }
 }
 
@@ -159,7 +226,6 @@ int main(int argc, char *argv[])
     portno = atoi(argv[1]);
     
     sockInit(sockfd, portno);
-    printf("Waiting on messages...\n");
 
     thread listenerThread(listener, sockfd);
     

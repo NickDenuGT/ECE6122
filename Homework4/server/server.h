@@ -42,5 +42,7 @@ vector<udpMessageHistory> messageHistoryVector;
 
 udpMessage compositeMessage = {'1', '0', 0, 0, ""};
 
+int compositeMessageLength = 0;
+
 #endif /* SERVER_H */
 

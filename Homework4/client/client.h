@@ -1,26 +1,33 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h> 
+#include <iostream>
+#include <string>
+#include <thread>
+#include <pthread.h>
 
-/* 
- * File:   client.h
- * Author: nick
- *
- * Created on October 22, 2019, 8:06 PM
- */
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>  /* Needed for getaddrinfo() and freeaddrinfo() */
+#include <unistd.h> /* Needed for close() */
+
+typedef int SOCKET;
+
+
+using namespace std; 
 
 #ifndef CLIENT_H
 #define CLIENT_H
 
-typedef struct udpMessage{
+struct udpMessage{
     unsigned char nVersion;
     unsigned char nType;
     unsigned short nMsgLen;
     unsigned long lSeqNum;
     char chMsg[1000];
 };
+
 
 #endif /* CLIENT_H */
 

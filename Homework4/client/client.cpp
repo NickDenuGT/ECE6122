@@ -1,14 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h> 
-#include <iostream>
-#include "client.h"
 
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>  /* Needed for getaddrinfo() and freeaddrinfo() */
-#include <unistd.h> /* Needed for close() */
+#include "client.h"
 
 typedef int SOCKET;
 
@@ -45,6 +36,37 @@ void error(const char *msg)
 
     exit(0);
 }
+
+
+void printMessageStruct(udpMessage outGoing)
+{
+    cout << "UDPMESSAGE\n\n";
+    cout << "chMsg = " << outGoing.chMsg;
+    cout << "\nlSeqNum = " << outGoing.lSeqNum;
+    cout << "\nnMsgLen = " << outGoing.nMsgLen;
+    cout << "\ntype = " << outGoing.nType;
+    cout << "\nversion = " << outGoing.nVersion;
+    cout << "\n\n";
+}
+
+void *listener(void *sockfd_void)
+{
+    int sockfd = *((int *)(&sockfd_void));
+    udpMessage incomingMessageStruct;
+    struct sockaddr_in from;
+    int n;
+    socklen_t fromlen = sizeof(struct sockaddr_in);
+    while (true)
+    {
+        n = recvfrom(sockfd, (char*)&incomingMessageStruct, sizeof(udpMessage), 0, (struct sockaddr *)&from, &fromlen);
+        
+        //printMessageStruct(incomingMessageStruct);
+        
+        incomingMessageStruct.chMsg[incomingMessageStruct.nMsgLen] = 0;
+        printf("Received Msg Type: 1, Seq: 33, Msg: %s\n", incomingMessageStruct.chMsg);
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -89,47 +111,56 @@ int main(int argc, char *argv[])
 
     serv_addr.sin_port = htons(portno);
 
+    string command_line, message;
+    long sequence;
+    char command_char, version, type;
+    
+    pthread_t listenerThread;
+    pthread_create(&listenerThread, NULL, listener, (void *)sockfd);
+    
+    //thread listenerThread(listener, sockfd);
+    
     while (true)
     {
-        printf("Please enter the message: ");
-
-        memset(outGoing.chMsg, 0, 1000);
-        outGoing.nVersion = '1';
-        outGoing.lSeqNum = '1';
-        fgets(outGoing.chMsg, 1000, stdin);
+        printf("Please enter command: ");
         
-        for(int i = 0; i < 1000; i++)
+        getline(cin, command_line);
+        
+        command_char = command_line.at(0);
+        
+        if(command_char == 'v')
         {
-            if(outGoing.chMsg[i] == 0)
-            {
-                outGoing.nMsgLen = i;
-                break;
-            }
+            version = command_line.at(2);
+        }
+        else if(command_char == 't')
+        {
+            type = command_line.at(2);
+            command_line = command_line.substr(4);
+            sequence = (long)stoi(command_line.substr(0, command_line.find(" ")));
+            message = command_line.substr(command_line.find(" ") + 1);
+            
+            strcpy(outGoing.chMsg, message.c_str());
+            outGoing.lSeqNum = sequence;
+            outGoing.nMsgLen = command_line.length() - (command_line.find(" ") + 1);
+            outGoing.nType = type;
+            outGoing.nVersion = version;
+            
+            //printMessageStruct(outGoing);
+            
+            n = sendto(sockfd, (void *)&outGoing, sizeof(outGoing), 0, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+            
+            
+        }
+        else if(command_char == 'q')
+        {
+            pthread_cancel(listenerThread);
+            break;
         }
         
-        outGoing.nType = '3';
         
-        printf("out message = %s\n", outGoing.chMsg);
         
-        n = sendto(sockfd, (void *)&outGoing, sizeof(outGoing), 0, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
 
-        printf("n = %d\n", n);
-        
-        if (n < 0)
-            error("ERROR writing to socket");
 
-        memset(buffer, 0, 1024);
-
- //       n = recv(sockfd, buffer, 1023, 0);
-        fromlen = sizeof(serv_addr);
-        n = recvfrom(sockfd, buffer, sizeof(outGoing), 0, (sockaddr *)&from, &fromlen);
-
-        if (n < 0)
-            error("ERROR reading from socket");
-        else
-            buffer[n] = 0;
-
-        printf("%s\n", buffer);
     }
 
     sockClose(sockfd);
