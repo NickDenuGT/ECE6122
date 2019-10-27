@@ -1,19 +1,27 @@
+/*
+Author: Nicholas Denu
+Class ECE 6122
+last Date Modified: 10/23/19
+
+Description:
+
+This file is meant to act as a client into the partnering server program. This 
+program sends messages to the server that are stored in a UDP method. 
+This program also takes responses from the client and displays them.
+*/
+
 
 #include "client.h"
 
 typedef int SOCKET;
 
-int sockInit(void)
-{
-    return 0;
-}
 
-int sockQuit(void)
-{
-    return 0;
-}
+/*
+Purpose: close the socket being used.
 
-/* Note: For POSIX, typedef SOCKET as an int. */
+Inputs: sock - the current socket being used.
+Outputs: int - the return status for the function.
+*/
 
 int sockClose(SOCKET sock)
 {
@@ -30,6 +38,13 @@ int sockClose(SOCKET sock)
 
 }
 
+
+/*
+Purpose: Gather errors throughout the function.
+
+Inputs: msg - the error message.
+Outputs: None
+*/
 void error(const char *msg)
 {
     perror(msg);
@@ -37,7 +52,12 @@ void error(const char *msg)
     exit(0);
 }
 
+/*
+Purpose: Prints out the message packet in an organized manner.
 
+Inputs: outGoing - the message packet.
+Outputs: None
+*/
 void printMessageStruct(udpMessage outGoing)
 {
     cout << "UDPMESSAGE\n\n";
@@ -49,6 +69,15 @@ void printMessageStruct(udpMessage outGoing)
     cout << "\n\n";
 }
 
+/*
+Purpose: This function is called as a thread and is listening for any response
+from the server. When it does receive a response from the server it will
+display it in an organized manner.
+
+Inputs: sockfd_void - The socket id. Passed as a void * to accomodate for
+the pthread calling this function.
+Outputs: None
+*/
 void *listener(void *sockfd_void)
 {
     int sockfd = *((int *)(&sockfd_void));
@@ -67,7 +96,15 @@ void *listener(void *sockfd_void)
     }
 }
 
+/*
+Purpose: This function is used as the command getter from the user. Based on
+the command the messages are sent with different messages and types.
 
+Inputs: argc - The number of command line items.
+        argv[] - The ip and port numbers will need to be inputs here.
+
+Outputs: int - Returns 0 unless there is an error. That is not built in.
+*/
 int main(int argc, char *argv[])
 {
     int sockfd, portno, n;
@@ -87,7 +124,6 @@ int main(int argc, char *argv[])
         exit(0);
     }
     
-    sockInit();
     // Convert string to int
     portno = atoi(argv[2]);
     // Create socket
@@ -164,7 +200,6 @@ int main(int argc, char *argv[])
     }
 
     sockClose(sockfd);
-    sockQuit();
 
     return 0;
 }

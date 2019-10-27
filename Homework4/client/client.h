@@ -1,3 +1,15 @@
+/*
+Author: Nicholas Denu
+Class ECE 6122
+last Date Modified: 10/23/19
+
+Description:
+
+This file has all of the includes needed for the client.cpp file.
+This file also has the structure that will be passed through the sockets.
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
