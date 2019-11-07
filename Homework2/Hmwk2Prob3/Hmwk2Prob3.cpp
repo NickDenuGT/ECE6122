@@ -17,7 +17,7 @@
 
 using namespace std;
 
-vector<vector<int>> triangle;
+vector<vector<int> > triangle;
 int traverse(int, int, int);
 
 /*
@@ -33,13 +33,12 @@ int traverse(int, int, int);
 int main(int argc, char** argv)
 {
     fstream triFile;
-    //triFile.open(argv[1]);
-    triFile.open("data_triangle.txt");
+    triFile.open(argv[1]);
     
     int numLevels;
     triFile >> numLevels;
     
-    triangle = vector<vector<int>>(numLevels);
+    triangle = vector<vector<int> >(numLevels);
     
     for(int i = 0; i < numLevels; i++)
     {

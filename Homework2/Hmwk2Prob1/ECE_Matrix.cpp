@@ -25,10 +25,9 @@ using namespace std;
  */
 ECE_Matrix::ECE_Matrix():
 m_rowSize(0),
-m_colSize(0),
-m_pathToMatrixFile("")
+m_colSize(0)
 {
-    vector<vector<double>> matrix(m_rowSize);
+    vector<vector<double> > matrix(m_rowSize);
     for(int i = 0; i < matrix.size(); i++)
     {
         matrix[i] = vector<double>(m_colSize, 0);
@@ -63,10 +62,9 @@ m_matrix(inCopy.m_matrix)
  */
 ECE_Matrix::ECE_Matrix(const int squareSize, const double elements):
 m_rowSize(squareSize),
-m_colSize(squareSize),
-m_pathToMatrixFile("")
+m_colSize(squareSize)
 {
-    vector<vector<double>> matrix(squareSize);
+    vector<vector<double> > matrix(squareSize);
     for(int i = 0; i < matrix.size(); i++)
     {
         matrix[i] = vector<double>(squareSize, elements);
@@ -86,10 +84,9 @@ m_pathToMatrixFile("")
  */
 ECE_Matrix::ECE_Matrix(const int rowSize, const int colSize, const double elements):
 m_rowSize(rowSize),
-m_colSize(colSize),
-m_pathToMatrixFile("")
+m_colSize(colSize)
 {
-    vector<vector<double>> matrix(m_rowSize);
+    vector<vector<double> > matrix(m_rowSize);
     for(int i = 0; i < matrix.size(); i++)
     {
         matrix[i] = vector<double>(m_colSize, elements);
@@ -107,11 +104,10 @@ m_pathToMatrixFile("")
  *         matrix - The matrix incoming. Not the same element across the entire matrix
  * Outputs: None
  */
-ECE_Matrix::ECE_Matrix(const int rowSize, const int colSize, const vector<vector<double>> matrix):
+ECE_Matrix::ECE_Matrix(const int rowSize, const int colSize, const vector<vector<double> >matrix):
 m_rowSize(rowSize),
 m_colSize(colSize),
-m_matrix(matrix),
-m_pathToMatrixFile("")
+m_matrix(matrix)
 {
     // do nothing
 }
@@ -124,14 +120,13 @@ m_pathToMatrixFile("")
  * being brought in
  * Outputs: None
  */
-ECE_Matrix::ECE_Matrix(const string pathToMatrixFile):
+ECE_Matrix::ECE_Matrix(char* pathToMatrixFile):
 m_pathToMatrixFile(pathToMatrixFile)
 {
-    fstream matrixFile;
-    matrixFile.open(m_pathToMatrixFile);
+    fstream matrixFile(m_pathToMatrixFile, std::fstream::in);
     matrixFile >> m_rowSize >> m_colSize;
     
-    vector<vector<double>> matrix(m_rowSize);
+    vector<vector<double> > matrix(m_rowSize);
     
     for(int i = 0; i < m_rowSize; i++)
     {
@@ -191,7 +186,7 @@ ECE_Matrix ECE_Matrix::transpose() const
  */
 ECE_Matrix ECE_Matrix::operator+(ECE_Matrix const &lhs) const
 {
-    vector<vector<double>> sumMatrix(max(lhs.m_rowSize, this->m_rowSize));
+    vector<vector<double> > sumMatrix(max(lhs.m_rowSize, this->m_rowSize));
     for(int i = 0; i < sumMatrix.size(); i++)
     {
         sumMatrix[i] = vector<double>(max(lhs.m_colSize, this->m_colSize));
@@ -225,7 +220,7 @@ ECE_Matrix ECE_Matrix::operator+(ECE_Matrix const &lhs) const
  */
 ECE_Matrix ECE_Matrix::operator+=(ECE_Matrix const &lhs)
 {
-    vector<vector<double>> sumMatrix(max(lhs.m_rowSize, this->m_rowSize));
+    vector<vector<double> > sumMatrix(max(lhs.m_rowSize, this->m_rowSize));
     for(int i = 0; i < sumMatrix.size(); i++)
     {
         sumMatrix[i] = vector<double>(max(lhs.m_colSize, this->m_colSize));
@@ -263,7 +258,7 @@ ECE_Matrix ECE_Matrix::operator+=(ECE_Matrix const &lhs)
  */
 ECE_Matrix ECE_Matrix::operator+(long const &lhs) const
 {
-    vector<vector<double>> sumMatrix(this->m_rowSize);
+    vector<vector<double> > sumMatrix(this->m_rowSize);
     for(int i = 0; i < sumMatrix.size(); i++)
     {
         sumMatrix[i] = vector<double>(this->m_colSize);
@@ -321,7 +316,7 @@ ECE_Matrix ECE_Matrix::operator-=(ECE_Matrix const &lhs)
  */
 ECE_Matrix ECE_Matrix::operator*(long const &lhs) const
 {
-    vector<vector<double>> sumMatrix(this->m_rowSize);
+    vector<vector<double> > sumMatrix(this->m_rowSize);
     for(int i = 0; i < sumMatrix.size(); i++)
     {
         sumMatrix[i] = vector<double>(this->m_colSize);
@@ -348,7 +343,7 @@ ECE_Matrix ECE_Matrix::operator/(long const &lhs) const
         cout << "You cannot divide by zero you fool.";
         return *this;
     }
-    vector<vector<double>> sumMatrix(this->m_rowSize);
+    vector<vector<double> > sumMatrix(this->m_rowSize);
     for(int i = 0; i < sumMatrix.size(); i++)
     {
         sumMatrix[i] = vector<double>(this->m_colSize);

@@ -1,0 +1,14 @@
+#PBS -N job1
+#PBS -q coc-ice
+#PBS -l nodes=4:ppn=2
+#PBS -l walltime=2:00
+
+#PBS -j oe
+#PBS -o Homework5.out
+#PBS -m abe
+
+cd ~/data/Homework5
+
+echo "Starting Job..."
+module load gcc mvapich2
+mpirun -np 8 ./a.out

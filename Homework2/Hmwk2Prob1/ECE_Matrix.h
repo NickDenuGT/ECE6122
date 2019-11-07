@@ -25,8 +25,8 @@ public:
     ECE_Matrix(ECE_Matrix const &);
     ECE_Matrix(const int squareSize, const double elements);
     ECE_Matrix(const int rowSize, const int colSize, const double elements);
-    ECE_Matrix(const int rowSize, const int colSize, const vector<vector<double>> matrix);
-    ECE_Matrix(const string path_to_matrix_file);
+    ECE_Matrix(const int rowSize, const int colSize, const vector<vector<double> > matrix);
+    ECE_Matrix(char* path_to_matrix_file);
 
     void setRowSize(const int &rowSize) {m_rowSize = rowSize;}
     int getRowSize() {return m_rowSize;}
@@ -37,11 +37,11 @@ public:
     void printMatrix();
     ECE_Matrix transpose() const;
     
-    vector<vector<double>> m_matrix;
+    vector<vector<double> > m_matrix;
 
     int m_rowSize;
     int m_colSize;
-    string m_pathToMatrixFile;
+    char * m_pathToMatrixFile;
     
     
     friend ostream& operator<<(ostream& os, const ECE_Matrix& ece_mat)
@@ -89,7 +89,7 @@ public:
     
     friend ECE_Matrix operator/(long const &lhs, ECE_Matrix const &rhs)
     {
-        vector<vector<double>> sumMatrix(rhs.m_rowSize);
+        vector<vector<double> > sumMatrix(rhs.m_rowSize);
         for(int i = 0; i < sumMatrix.size(); i++)
         {
             sumMatrix[i] = vector<double>(rhs.m_colSize);

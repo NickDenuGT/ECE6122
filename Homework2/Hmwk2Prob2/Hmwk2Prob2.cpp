@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     
     inFile >> rows >> cols;
     
-    vector<vector<int>> inMatrix(rows);
+    vector<vector<int> > inMatrix(rows);
     
     for(int i = 0; i < rows; i++)
     {
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
             inFile >> inMatrix[i][j];
         }
     }
-    cout << rows << cols << endl;
+
     long maxValue = 0;
     long tempLong = 0;
     
