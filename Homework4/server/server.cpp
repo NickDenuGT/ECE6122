@@ -1,11 +1,31 @@
+/*
+Author: Nicholas Denu
+Class ECE 6122
+last Date Modified: 10/23/19
 
+Description:
+
+This is the server file that will act as a hub for multiple clients to act with it
+in a UDP methodology. This file will take in messages from other clients
+and bundle them together in order according to their sequence number.
+
+Also has the ability to send messages back to the clients.
+*/
 #include "server.h"
 
 
  typedef int SOCKET;
 
  
+/*
+Purpose: This function initializes the socket including binding the socket
+to the port so that all of the clients can find it and send it messages.
 
+Input: sockfd - the socket identifier used across the program.
+       pornno - the port number specified by the user.
+
+Output: int - returning 0 always, but could be adjusted to have an error returned.
+*/
 int sockInit(int sockfd, int portno)
 {
     struct sockaddr_in serv_addr;
@@ -26,11 +46,14 @@ int sockInit(int sockfd, int portno)
     return 0;
 }
 
-int sockQuit(void)
-{
-    return 0;
-}
 
+/*
+Purpose: This function closes the socket before exiting.
+
+Input: sock - the socket being closed.
+
+Output: int - returning the status of the close function. 
+*/
 int sockClose(SOCKET sock)
 {
 
@@ -45,8 +68,14 @@ int sockClose(SOCKET sock)
     return status;
 
 }
-/////////////////////////////////////////////////
-// Output error message and exit
+
+/*
+Purpose: This function gathers the errors from the program
+
+Input: msg - the error message.
+
+Output: None
+*/
 void error(const char *msg)
 {
     perror(msg);
@@ -54,11 +83,27 @@ void error(const char *msg)
     exit(1);
 }
 
+/*
+Purpose: This function compares the sequence numbers in two different message structs
+
+Input: a - The first message struct
+       b - The second message struct
+
+Output: bool - true if a's sequence number is less than b's sequence number
+*/
 bool compareByLSeqNum(const udpMessageHistory &a, const udpMessageHistory &b)
 {
     return a.in_message.lSeqNum < b.in_message.lSeqNum;
 }
 
+/*
+Purpose: This function creates the composite message to be either displayed or 
+sent out to the clients
+
+Input: None
+
+Output: None
+*/
 void createCompositeMessage()
 {
     sort(messageHistoryVector.begin(), messageHistoryVector.end(), compareByLSeqNum);
@@ -74,7 +119,13 @@ void createCompositeMessage()
     
 }
 
+/*
+Purpose: This function prints out the message structure in an organized manner.
 
+Input: outGoing - The message being printed out.
+
+Output: None
+*/
 void printMessageStruct(udpMessage outGoing)
 {
     cout << "UDPMESSAGE\n\n";
@@ -86,6 +137,14 @@ void printMessageStruct(udpMessage outGoing)
     cout << "\n\n";
 }
 
+/*
+Purpose: This function sends out the composite message to all of the clients
+that sent messages that are included in the composite message.
+
+Input: sockfd - The socket identifier to use when sending.
+
+Output: None
+*/
 void sendCompositeToAll(int sockfd)
 {
     int n = 0;
@@ -95,8 +154,14 @@ void sendCompositeToAll(int sockfd)
     }
 }
 
+/*
+Purpose: This function hangs in a while loop receiving messages from any clients.
+Depending on what the types of messages are, the function acts differently.
 
-// Called and ran in a thread to listen for new clients.
+Input: sockfd - The socket identifier to use when sending.
+
+Output: None
+*/
 void listener(int sockfd)
 {
     udpMessage incomingMessageStruct;
@@ -203,8 +268,16 @@ void listener(int sockfd)
     }
 }
 
-/////////////////////////////////////////////////
-// Main
+/*
+Purpose: The main function initiates the listening thread and waits while 
+the user gives commands. Depending on the commands the function can send
+composite messages back to the clients and/or display them.
+
+Input: argc - The number of command line arguments.
+       argv[] - This will be the port number that the socket will be binded to.
+
+Output: int - return 0 unless there is an erorr.
+*/
 int main(int argc, char *argv[])
 {
     int sockfd, newsockfd, portno;
@@ -259,8 +332,6 @@ int main(int argc, char *argv[])
    
     sockClose(newsockfd);
     sockClose(sockfd);
-
-    sockQuit();
 
     return 0;
 }

@@ -1,3 +1,13 @@
+/*
+Author: Nicholas Denu
+Class ECE 6122
+last Date Modified: 10/23/19
+
+Description:
+
+This header file is used to include all files needed for the server c++ file.
+Also some global variables are assigned here.
+*/
 
 
 #include <cstdlib>
