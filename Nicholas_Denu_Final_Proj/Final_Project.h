@@ -17,28 +17,31 @@ defining functions, and defining structs.
 #include <string.h>
 #include <fstream>
 #include "mpi.h"
+#include <vector>
 
 #define ACTIVE 1
-#define DOCKED 2
-#define DESTROYED 0
+#define HOVERING 2
 
-#define COLL_DIST 250
-#define	DOCK_DIST 50
-#define SHIP_MASS 10000
-#define NUM_YELLJACKS 7
+#define COLL_DIST 0.01
+#define	HOVER_DIST 10
+#define SHIP_MASS 1
+#define NUM_DRONES 15
 #define SENDCNT 11
 
 using namespace std;
 
-int time_limit, max_thrust;
-int collision_buffer[NUM_YELLJACKS];
-int docking_buffer[NUM_YELLJACKS];
+int time_limit, max_velo = 2;
+int collision_buffer[NUM_DRONES];
+int docking_buffer[NUM_DRONES];
 double send_buffer[SENDCNT];
-double recv_buffer[(NUM_YELLJACKS+1)*SENDCNT];
+double recv_buffer[(+1)*SENDCNT];
 double x_rand, y_rand, z_rand;
-string input_file = "in.dat";
 
-struct buzz_struct
+// Camera position
+float x = 4, y = -5.0, z = 10; // initially 5 units south of origin
+float dx = 0, dy = 0, dz = 0;
+
+struct drone_struct
 {
 	double id;
 	double status;
@@ -53,18 +56,12 @@ struct buzz_struct
 	double z_thrust;
 };
 
+vector<drone_struct> drone_fleet;
 
+void InitDroneLocation();
 
-buzz_struct buzzy;
-buzz_struct buzz_fleet[NUM_YELLJACKS];
-
-void LoadInputFile();
-
-void InitShipVals(buzz_struct*, int);
-
-void CalculateBuzzyXYZ(buzz_struct*);
-void CalculateYellowJacketXYZ(buzz_struct*);
-void CalculateYellowJacketVelocity(buzz_struct *);
+void CalcDroneXYZ(drone_struct*);
+void CalcDroneVelo(buzz_struct *);
 
 void PrintAllShips(double *, int);
 void CheckForCollisions(double *, int *);
@@ -74,4 +71,5 @@ double CalcDistance(double, double, double, double, double, double);
 double CalcMagnitude(double, double, double);
 void ResetArrayToZeros(int *);
 
-int FindClosestToBuzzy(double *);
+void renderScene();
+void changeSize(int, int);

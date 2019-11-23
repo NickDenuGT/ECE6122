@@ -47,62 +47,48 @@ int main(int argc, char**argv)
     srand(rank);
     if (rank == 0)
     {
-        LoadInputFile();
+        InitDroneLocation();
     }
 
-    // Broadcast all loaded values to yellowjackets
-    MPI_Bcast(&buzz_fleet, NUM_YELLJACKS * 12, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    // Broadcast all loaded values to drones
+    MPI_Bcast(&drone_fleet, NUM_DRONES * 12, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(&time_limit, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&max_thrust, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	
-	int closest_yellow_jacket_index = 0;
 	double x_mult = 0, y_mult = 0, z_mult = 0, max_velo;
 	double x_thrust, y_thrust, z_thrust;
 
     // Loop through the number of time steps
-    for (int round = 0; round < time_limit; ++round)
+    while(itsgotime)
     {	
 		if (rank == 0)
 		{
-			send_buffer[0] = 0;
-			send_buffer[1] = 1;
-			send_buffer[2] = buzzy.x_coord;
-			send_buffer[3] = buzzy.y_coord;
-			send_buffer[4] = buzzy.z_coord;
-			send_buffer[5] = buzzy.x_thrust;
-			send_buffer[6] = buzzy.y_thrust;
-			send_buffer[7] = buzzy.z_thrust;
-			send_buffer[8] = buzzy.x_velo;
-			send_buffer[9] = buzzy.y_velo;
-			send_buffer[10] = buzzy.z_velo;
-
-			//Update Location of Buzzy
-			CalculateBuzzyXYZ(&buzzy);		
+			// Print is screen		
 		 }
 		 else
 		 {
-					send_buffer[0] = buzz_fleet[rank - 1].id;
-		            send_buffer[1] = buzz_fleet[rank - 1].status;
-		            send_buffer[2] = buzz_fleet[rank - 1].x_coord;
-		            send_buffer[3] = buzz_fleet[rank - 1].y_coord;
-		            send_buffer[4] = buzz_fleet[rank - 1].z_coord;
-		            send_buffer[5] = buzz_fleet[rank - 1].x_thrust;
-		            send_buffer[6] = buzz_fleet[rank - 1].y_thrust;
-		            send_buffer[7] = buzz_fleet[rank - 1].z_thrust;
-					send_buffer[8] = buzz_fleet[rank - 1].x_velo;
-		            send_buffer[9] = buzz_fleet[rank - 1].y_velo;
-		            send_buffer[10] = buzz_fleet[rank - 1].z_velo;
+					send_buffer[0] = drone_fleet[rank - 1].id;
+		            send_buffer[1] = drone_fleet[rank - 1].status;
+		            send_buffer[2] = drone_fleet[rank - 1].x_coord;
+		            send_buffer[3] = drone_fleet[rank - 1].y_coord;
+		            send_buffer[4] = drone_fleet[rank - 1].z_coord;
+		            send_buffer[5] = drone_fleet[rank - 1].x_thrust;
+		            send_buffer[6] = drone_fleet[rank - 1].y_thrust;
+		            send_buffer[7] = drone_fleet[rank - 1].z_thrust;
+					send_buffer[8] = drone_fleet[rank - 1].x_velo;
+		            send_buffer[9] = drone_fleet[rank - 1].y_velo;
+		            send_buffer[10] = drone_fleet[rank - 1].z_velo;
 
 			x_rand = ((double)rand()) / ((double)RAND_MAX) * 0.4 + 0.8;
 			y_rand = ((double)rand()) / ((double)RAND_MAX) * 0.4 + 0.8;
 			z_rand = ((double)rand()) / ((double)RAND_MAX) * 0.4 + 0.8;
 
 
-			// Update location of buzz_fleet
-			CalculateYellowJacketXYZ(&(buzz_fleet[rank - 1]));
+			// Update location of drone_fleet
+			CalculateYellowJacketXYZ(&(drone_fleet[rank - 1]));
 			
-			// Update velocity of buzz_fleet		
-			CalculateYellowJacketVelocity(&(buzz_fleet[rank - 1]));
+			// Update velocity of drone_fleet		
+			CalculateYellowJacketVelocity(&(drone_fleet[rank - 1]));
 			
 		}
 			// Update every MPI node on every other MPI's information
@@ -111,9 +97,6 @@ int main(int argc, char**argv)
 		if (rank == 0)
 		{
 			//Go through the steps of checking for docks or collisions
-			// Finding the closest yellow jacket allows us to activate 
-			// that ship to try and dock on the Buzzy
-			closest_yellow_jacket_index = FindClosestToBuzzy(recv_buffer);
 			ResetArrayToZeros(collision_buffer);
 			ResetArrayToZeros(docking_buffer);
 			CheckForCollisions(recv_buffer, collision_buffer);
@@ -130,27 +113,27 @@ int main(int argc, char**argv)
 							recv_buffer[9],
 							recv_buffer[10]) * 1.1;
 
-			x_mult = (-1) * (buzz_fleet[rank - 1].x_coord - recv_buffer[2]) / 
+			x_mult = (-1) * (drone_fleet[rank - 1].x_coord - recv_buffer[2]) / 
 									CalcDistance(recv_buffer[2],
 												recv_buffer[3],
 												recv_buffer[4],
-												buzz_fleet[rank - 1].x_coord,
-												buzz_fleet[rank - 1].y_coord,
-												buzz_fleet[rank - 1].z_coord);
-			y_mult = (-1) * (buzz_fleet[rank - 1].y_coord - recv_buffer[3]) / 
+												drone_fleet[rank - 1].x_coord,
+												drone_fleet[rank - 1].y_coord,
+												drone_fleet[rank - 1].z_coord);
+			y_mult = (-1) * (drone_fleet[rank - 1].y_coord - recv_buffer[3]) / 
 									CalcDistance(recv_buffer[2],
 												recv_buffer[3],
 												recv_buffer[4],
-												buzz_fleet[rank - 1].x_coord,
-												buzz_fleet[rank - 1].y_coord,
-												buzz_fleet[rank - 1].z_coord);
-			z_mult = (-1) * (buzz_fleet[rank - 1].z_coord - recv_buffer[4]) / 
+												drone_fleet[rank - 1].x_coord,
+												drone_fleet[rank - 1].y_coord,
+												drone_fleet[rank - 1].z_coord);
+			z_mult = (-1) * (drone_fleet[rank - 1].z_coord - recv_buffer[4]) / 
 									CalcDistance(recv_buffer[2],
 												recv_buffer[3],
 												recv_buffer[4],
-												buzz_fleet[rank - 1].x_coord,
-												buzz_fleet[rank - 1].y_coord,
-												buzz_fleet[rank - 1].z_coord);
+												drone_fleet[rank - 1].x_coord,
+												drone_fleet[rank - 1].y_coord,
+												drone_fleet[rank - 1].z_coord);
 			x_thrust = max_thrust * x_mult;
 			y_thrust = max_thrust * y_mult;
 			z_thrust = max_thrust * z_mult;	
@@ -159,20 +142,20 @@ int main(int argc, char**argv)
 			//	we try several values for our thrust and decide upon one that is reasonable.
 			for(int i = 1; i <= 100; i+=10)
 			{
-				if((buzz_fleet[rank - 1].x_velo + (x_thrust / i) / SHIP_MASS >= max_velo)	||
-					(buzz_fleet[rank - 1].y_velo + (y_thrust / i) / SHIP_MASS >= max_velo)	||
-					(buzz_fleet[rank - 1].z_velo + (z_thrust / i) / SHIP_MASS >= max_velo))
+				if((drone_fleet[rank - 1].x_velo + (x_thrust / i) / SHIP_MASS >= max_velo)	||
+					(drone_fleet[rank - 1].y_velo + (y_thrust / i) / SHIP_MASS >= max_velo)	||
+					(drone_fleet[rank - 1].z_velo + (z_thrust / i) / SHIP_MASS >= max_velo))
 				{	
-					buzz_fleet[rank - 1].x_thrust = 0;
-					buzz_fleet[rank - 1].y_thrust = 0;
-					buzz_fleet[rank - 1].z_thrust = 0;
+					drone_fleet[rank - 1].x_thrust = 0;
+					drone_fleet[rank - 1].y_thrust = 0;
+					drone_fleet[rank - 1].z_thrust = 0;
 				}
 				else
 				{
 					// Found a reasonable thrust, let's now use it to fly to the Buzzy
-					buzz_fleet[rank - 1].x_thrust = x_thrust / i;
-					buzz_fleet[rank - 1].y_thrust = y_thrust / i;
-					buzz_fleet[rank - 1].z_thrust = z_thrust / i;
+					drone_fleet[rank - 1].x_thrust = x_thrust / i;
+					drone_fleet[rank - 1].y_thrust = y_thrust / i;
+					drone_fleet[rank - 1].z_thrust = z_thrust / i;
 					break;
 				}
 			}
@@ -185,7 +168,7 @@ int main(int argc, char**argv)
 		{
 			if(collision_buffer[rank - 1] == 1)
 			{
-				buzz_fleet[rank - 1].status = DOCKED;
+				drone_fleet[rank - 1].status = DOCKED;
 			}
 		}
 		MPI_Bcast(docking_buffer, NUM_YELLJACKS, MPI_INT, 0, MPI_COMM_WORLD);
@@ -193,11 +176,11 @@ int main(int argc, char**argv)
 		{
 			if(docking_buffer[rank - 1] == 1)
 			{
-				buzz_fleet[rank - 1].status = DOCKED;
+				drone_fleet[rank - 1].status = DOCKED;
 			}
 			else if(docking_buffer[rank - 1] == 2)
 			{
-				buzz_fleet[rank - 1].status = DESTROYED;
+				drone_fleet[rank - 1].status = DESTROYED;
 			}
 		}
     }
@@ -219,54 +202,22 @@ int main(int argc, char**argv)
 */
 void LoadInputFile()
 {
-	ifstream inFile;
-	inFile.open("in.dat");
-	if(!inFile)
-	{
-		cout << "Unable to open in.dat\n";
-		exit(1);
-	}
-	double speed, x_vect, y_vect, z_vect;
-	inFile >> time_limit;
-	inFile >> max_thrust;
-	inFile >> buzzy.x_coord >> buzzy.y_coord >> buzzy.z_coord;
-	inFile >> speed;
-	inFile >> x_vect >> y_vect >> z_vect;
-	buzzy.x_velo = speed * x_vect;
-	buzzy.y_velo = speed * y_vect;
-	buzzy.z_velo = speed * z_vect;
-	InitShipVals(&buzzy, 0);
-	for(int i = 0; i < NUM_YELLJACKS; i++)
-	{
-        	inFile >> buzz_fleet[i].x_coord >> buzz_fleet[i].y_coord >> buzz_fleet[i].z_coord;
-        	inFile >> speed;
-        	inFile >> x_vect >> y_vect >> z_vect;
-		buzz_fleet[i].x_velo = speed * x_vect;
-        	buzz_fleet[i].y_velo = speed * y_vect;
-        	buzz_fleet[i].z_velo = speed * z_vect;
-		InitShipVals(&buzz_fleet[i], i+1);
-	}
-}
+	drone_fleet.push_back({0, ACTIVE, 26.5, -50, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, 26.5, -25, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, 26.5, 0, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, 26.5, 25, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, 26.5, 50, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, 0, -50, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, 0, -25, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, 0, 25, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, 0, 50, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, -26.5, -50, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, -26.5, -25, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, -26.5, 0, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, -26.5, 25, 0, 0, 0, 0, 0, 0, 0});
+	drone_fleet.push_back({0, ACTIVE, -26.5, 50, 0, 0, 0, 0, 0, 0, 0});
 
-/*
-	InitShipVals
-	Purpose:	All values that aren't set from the in.dat file
-				are set here to zero or the proper values if 
-				they are known.
-
-	Inputs: ship_ptr - A pointer to the ship that is being 	
-						initialized.
-			id - The id number for the ship
-
-	Outputs: None
-*/
-void InitShipVals(buzz_struct *ship_ptr, int id)
-{
-	ship_ptr->id = id;
-	ship_ptr->status = ACTIVE;
-	ship_ptr->x_thrust = 0;
-	ship_ptr->y_thrust = 0;
-	ship_ptr->z_thrust = 0;
 }
 
 /*
@@ -431,72 +382,13 @@ void CheckForDocks(double *recv_buffer, int *docking_buffer)
 						recv_buffer[3],
 						recv_buffer[4]) < DOCK_DIST)
 		{
-			if(cos((buzzy.x_velo * recv_buffer[SENDCNT * (i + 1) + 8] + 
-					buzzy.y_velo * recv_buffer[SENDCNT * (i + 1) + 9] + 
-					buzzy.z_velo * recv_buffer[SENDCNT * (i + 1) + 10]) /
-					(CalcMagnitude(buzzy.x_velo, buzzy.y_velo, buzzy.z_velo) * 
-					CalcMagnitude(recv_buffer[SENDCNT * (i + 1) + 8],
-									recv_buffer[SENDCNT * (i + 1) + 9],
-									recv_buffer[SENDCNT * (i + 1) + 10]))) < 0.8)
-			{
-				
-				if(CalcMagnitude(buzzy.x_velo, buzzy.y_velo, buzzy.z_velo) / 
-				CalcMagnitude(recv_buffer[SENDCNT * (i + 1) + 8],
-									recv_buffer[SENDCNT * (i + 1) + 9],
-									recv_buffer[SENDCNT * (i + 1) + 10]) < 1.1)
-				{
-					docking_buffer[i] = 1;
-				}
-				else
-				{
-					docking_buffer[i] = 2;
-				}
-			}
+			docking_buffer[i] = 1;
+		}
+		else
+		{
+			docking_buffer[i] = 2;
 		}
 	}
-}
-
-/*
-	FindClosestToBuzzy
-	Purpose:	This function uses the distances between Buzzy
-				and each yellow jacket to determine which 
-				yellow jacket is the closest to Buzzy and will
-				get the first go at getting to buzzy.
-
-	Inputs: recv_buffer - The received buffer from the MPI_Allgather call
-							This has all the information for all of the
-							ships in it.
-
-	Outputs: int - Returns the yellow jacket index for the closest 
-					yellow jacket.
-*/
-int FindClosestToBuzzy(double *recv_buffer)
-{
-	int low_index = -1;
-	double low_val = 100000000000000;
-	for(int i = 0; i < NUM_YELLJACKS; i++)
-	{
-		if(recv_buffer[SENDCNT * (i + 1) + 1] != 1)
-		{
-			// do nothing
-		}
-		else if(CalcDistance(recv_buffer[SENDCNT * (i + 1) + 2],
-						recv_buffer[SENDCNT * (i + 1) + 3],
-						recv_buffer[SENDCNT * (i + 1) + 4],
-						recv_buffer[2],
-						recv_buffer[3],
-						recv_buffer[4]) < low_val)
-		{
-			low_val = CalcDistance(recv_buffer[SENDCNT * (i + 1) + 2],
-						recv_buffer[SENDCNT * (i + 1) + 3],
-						recv_buffer[SENDCNT * (i + 1) + 4],
-						recv_buffer[2],
-						recv_buffer[3],
-						recv_buffer[4]);
-			low_index = i;
-		}
-	}
-	return low_index;
 }
 
 /*
@@ -505,11 +397,11 @@ int FindClosestToBuzzy(double *recv_buffer)
 				between them using the distance formula
 
 	Inputs: x1 - The first ship's x coordinate
-			y1 - The first ship's y coordinate
-			z1 - The first ship's z coordinate
-			x2 - The second ship's x coordinate
-			y2 - The second ship's y coordinate
-			z2 - The second ship's z coordinate
+			y1 - The first drone's y coordinate
+			z1 - The first drone's z coordinate
+			x2 - The second drone's x coordinate
+			y2 - The second drone's y coordinate
+			z2 - The second drone's z coordinate
 			
 	Outputs: double - The distance calculated
 */
