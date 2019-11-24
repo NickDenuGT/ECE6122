@@ -63,7 +63,36 @@ int main(int argc, char**argv)
     {	
 		if (rank == 0)
 		{
-			// Print is screen		
+			// general initializations
+	    srand(time(NULL));
+	    glutInit(&argc, argv);
+	    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+	    glutInitWindowPosition(100, 100);
+	    glutInitWindowSize(600, 600);
+	    glutCreateWindow("Football Drones");
+
+	    // register callbacks
+	    glutReshapeFunc(changeSize); // window reshape callback
+	    glutDisplayFunc(renderScene); // (re)display callback
+	    
+	    // OpenGL init
+	    glEnable(GL_DEPTH_TEST);
+
+		// Lighting Initialization
+		glEnable(GL_LIGHTING);
+		GLfloat light0Ambient[] = { 0.2, 0.2, 0.2, 1.0 };
+		GLfloat light0Specular[] = { 0.8, 0.8, 0.8, 1.0 };
+
+		glLightfv(GL_LIGHT0, GL_AMBIENT, light0Ambient);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, light0Specular);
+		glEnable(GL_LIGHT0);
+
+		glEnable(GL_COLOR_MATERIAL);
+		glShadeModel(GL_SMOOTH);
+
+    // enter GLUT event processing cycle
+    glutMainLoop();
+					
 		 }
 		 else
 		 {
@@ -103,10 +132,10 @@ int main(int argc, char**argv)
 			CheckForDocks(recv_buffer, docking_buffer);
 			PrintAllShips(recv_buffer, round);
 		}
-		MPI_Bcast(&closest_yellow_jacket_index, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//LOOOK at this for drone physics
 		// Using the closest yellow jacket to Buzzy, we begin our
 		// voyage to try and dock
-		if(rank == closest_yellow_jacket_index + 1)
+		
 		{
 			// thrust in direction of buzzy
 			max_velo = CalcMagnitude(recv_buffer[8],
@@ -443,4 +472,9 @@ void ResetArrayToZeros(int *array)
 	{
 		array[i] = 0;
 	}
+}
+
+void update(void)
+{
+    glutPostRedisplay(); // redisplay everything
 }

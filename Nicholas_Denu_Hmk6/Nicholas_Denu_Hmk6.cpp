@@ -515,15 +515,7 @@ int main(int argc, char **argv)
     // register callbacks
     glutReshapeFunc(changeSize); // window reshape callback
     glutDisplayFunc(renderScene); // (re)display callback
-    glutIdleFunc(update); // incremental update
-    glutIgnoreKeyRepeat(1); // ignore key repeat when holding key down
-    //glutMouseFunc(mouseButton); // process mouse button push/release
-    //glutMotionFunc(mouseMove); // process mouse dragging motion
-    glutKeyboardFunc(processNormalKeys); // process standard key clicks
-    glutSpecialFunc(pressSpecialKey); // process special key pressed
-                        // Warning: Nonstandard function! Delete if desired.
-    glutSpecialUpFunc(releaseSpecialKey); // process special key release
-
+    
     // OpenGL init
     glEnable(GL_DEPTH_TEST);
 
@@ -535,12 +527,6 @@ int main(int argc, char **argv)
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light0Ambient);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, light0Specular);
 	glEnable(GL_LIGHT0);
-
-	GLfloat light1Position[] = {-5, -5, -8};
-	GLfloat light1Diffuse[] = {1, 1, 1, 1};
-	glLightfv(GL_LIGHT1, GL_POSITION, light1Position);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, light1Diffuse);
-	glEnable(GL_LIGHT1);
 
 	glEnable(GL_COLOR_MATERIAL);
 	glShadeModel(GL_SMOOTH);
